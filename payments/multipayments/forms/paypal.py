@@ -23,7 +23,7 @@ class PaypalSubmissionForm(base.ExternalPaymentForm):
     cmd = forms.CharField(widget=forms.HiddenInput(), initial='_cart')
     upload = forms.CharField(widget=forms.HiddenInput(), initial='1')
     charset = forms.CharField(widget=forms.HiddenInput(), initial='utf-8')
-
+    
     def __init__(self, request, order_form, *args, **kwargs):
 
         super(PaypalSubmissionForm, self).__init__(*args, **kwargs)
@@ -46,7 +46,11 @@ class PaypalSubmissionForm(base.ExternalPaymentForm):
         total_price = cart_price + \
             (ship_price if ship_price else Decimal('0')) + \
             (tax_price if tax_price else const.Decimal('0'))
-
+        try:
+            s_key = request.session.session_key
+        except:
+            # for Django 1.4 and above
+            s_key = request.session._session_key
         # a keyword, haha :)
         self.fields['return'] = forms.CharField(widget=forms.HiddenInput())
         #paypal = get_backend_settings('paypal')
@@ -61,7 +65,7 @@ class PaypalSubmissionForm(base.ExternalPaymentForm):
         self.fields['amount'].initial = total_price
         self.fields['currency_code'].initial = settings.PAYPAL_CURRENCY
         self.fields['business'].initial = settings.PAYPAL_BUSINESS
-
+        
         i = 1
         if cart.has_items():
             for item in cart.items.all():
@@ -83,9 +87,14 @@ class PaypalSubmissionForm(base.ExternalPaymentForm):
         self.fields['return'].initial = self.lambda_reverse(\
             settings.PAYPAL_RETURN_URL, cart, self.order.callback_uuid, \
             order_form)
+        
+        self.fields['return'].initial = self.lambda_reverse(\
+            settings.PAYPAL_RETURN_URL, cart, self.order.callback_uuid, \
+            order_form)
 
         self.fields['notify_url'].initial = self.lambda_reverse(\
             settings.PAYPAL_IPN_URL, cart, self.order.callback_uuid, order_form)
+        
 
     def add_line_item(self, number, name, amount, quantity):
         # FIELDS

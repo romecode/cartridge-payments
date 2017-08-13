@@ -25,7 +25,7 @@ class CallbackUUIDOrderForm(shopforms.OrderForm):
                     .count()
                 if not count:
                     break
-            initial['callback_uuid'] = callback_uuid
+            initial['callback_uuid'] = str(callback_uuid)
         elif 'callback_uuid' not in initial:
             while True:
                 callback_uuid = uuid4()
@@ -33,7 +33,7 @@ class CallbackUUIDOrderForm(shopforms.OrderForm):
                     .exists()
                 if not exists:
                     break
-            initial['callback_uuid'] = callback_uuid
+            initial['callback_uuid'] = str(callback_uuid)
         super(CallbackUUIDOrderForm, self).__init__(request, step, *args,
                                                      **kwargs)
 
